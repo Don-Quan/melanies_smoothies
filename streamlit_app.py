@@ -2,7 +2,7 @@
 import streamlit as st
 from snowflake.snowpark.functions import col
 import requests  
-
+import urllib.parse
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
@@ -34,7 +34,14 @@ if ingredients_list:
         st.subheader(fruit_chosen + ' Nutrition Information')
         ingredients_string += fruit_chosen + ' '
         search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        smoothiefroot_response = requests.get(f"https://fruityvice.com/api/fruit/{search_on}")
+        encoded_name = urllib.parse.quote(search_on)
+        smoothiefroot_response = requests.get(f"https://fruityvice.com/api/fruit/{encoded_name}")
+        if smoothiefroot_response.status_code == 200:
+          fruit_data = smoothiefroot_response.json()
+          st.dataframe(data=fruit_data, use_container_width=True)
+        else:
+          st.warning(f"No data found for {fruit_chosen}")
+
         sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
  
     #st.write(ingredients_string)
